@@ -15,11 +15,13 @@ enum x_bool {
 	false = 0,
 	true = 1
 };
-typedef unsigned int x_stat; // See below for information about error.
-const static x_stat x_stat_ok = 0;
-const static x_stat x_stat_error = 1;
-const static x_stat x_stat_nomem = 2;
-const static x_stat x_stat_already = 3;
+typedef enum x_stat x_stat;
+enum x_stat {
+	x_stat_ok = 0,
+	x_stat_error = 1,
+	x_stat_nomem = 2,
+	x_stat_already = 3
+};
 x_bool x_stat_pass(x_stat stat) {
 	if (stat == x_stat_error) return false;
 	if (stat == x_stat_nomem) return false;

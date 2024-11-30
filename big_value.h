@@ -337,11 +337,12 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero)) {
+	if (!a || !b) return x_stat_error;
+	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
 		x_stat stat = x_int_set(pthis, b);
 		return stat;
 	}
-	if (!b || (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero)) {
+	if (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero) {
 		x_stat stat = x_int_set(pthis, a);
 		return stat;
 	}
@@ -353,6 +354,7 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 		x_stat stat = x_int_make_any(pthis);
 		return stat;
 	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
 	x_stat stat;
 	x_bool swap = false;
 	if (a->value->size < b->value->size) swap = true;
@@ -452,11 +454,8 @@ static x_stat x_int_mul(x_int** pthis, x_int* a, x_int* b) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a && !b) {
-		x_stat stat = x_int_set_v(pthis, 0);
-		return stat;
-	}
-	if (!a || (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero)) {
+	if (!a || !b) return x_stat_error;
+	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
 		if (b->spec == x_real_spec_inf) {
 			x_stat stat = x_int_make_nan(pthis);
 			return stat;
@@ -464,7 +463,7 @@ static x_stat x_int_mul(x_int** pthis, x_int* a, x_int* b) {
 		x_stat stat = x_int_set_v(pthis, 0);
 		return stat;
 	}
-	if (!b || (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero)) {
+	if (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero) {
 		if (a->spec == x_real_spec_inf) {
 			x_stat stat = x_int_make_nan(pthis);
 			return stat;
@@ -490,6 +489,7 @@ static x_stat x_int_mul(x_int** pthis, x_int* a, x_int* b) {
 		this->symbol = a->symbol * b->symbol;
 		return stat;
 	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
 	x_stat stat;
 	stat = x_int_set_v(pthis, 0);
 	x_check_stat(stat);
@@ -541,6 +541,7 @@ static x_stat x_int_div(x_int** pthis, x_int* u, x_int* d) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
+	if (!u || !d) return x_stat_error;
 	if (u->spec == x_real_spec_any || d->spec == x_real_spec_any) {
 		x_stat stat = x_int_make_any(pthis);
 		return stat;
@@ -571,6 +572,7 @@ static x_stat x_int_div(x_int** pthis, x_int* u, x_int* d) {
 			return stat;
 		}
 	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
 	x_bool compare = false;
 	if (u->value->size < d->value->size) compare = true;
 	else if (u->value->size == d->value->size) {
@@ -693,6 +695,7 @@ static x_stat x_int_mod(x_int** pthis, x_int* u, x_int* d) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
+	if (!u || !d) return x_stat_error;
 	if (u->spec == x_real_spec_any || d->spec == x_real_spec_any) {
 		x_stat stat = x_int_make_any(pthis);
 		return stat;
@@ -723,6 +726,7 @@ static x_stat x_int_mod(x_int** pthis, x_int* u, x_int* d) {
 			return stat;
 		}
 	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
 	x_bool compare = false;
 	if (u->value->size < d->value->size) compare = true;
 	else if (u->value->size == d->value->size) {
@@ -958,7 +962,42 @@ static x_stat x_frac_optimize(x_frac** pthis) {
 		}
 	}
 	this->symbol = this->u->symbol * this->d->symbol;
-
+	x_stat stat;
+	// Greatest Common Divisor. 
+	x_int* r;
+	x_int* u_;
+	x_int* d_;
+	stat = x_int_new(&r);
+	x_check_stat(stat);
+	stat = x_int_new(&u_);
+	x_check_stat_do(stat, { x_int_del(&r); });
+	stat = x_int_new(&d_);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); });
+	stat = x_int_set(&u_, this->u);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	stat = x_int_set(&d_, this->d);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	while (d_->symbol == x_real_sym_pos) {
+		stat = x_int_mod(&r, u_, d_);
+		x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+		stat = x_int_set(&u_, d_);
+		x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+		stat = x_int_set(&d_, r);
+		x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	}
+	stat = x_int_set(&r, u_); // Use 'r' as greatest commond divisor. 
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	stat = x_int_div(&u_, this->u, r);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	stat = x_int_div(&d_, this->d, r);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	stat = x_int_set(&this->u, u_);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	stat = x_int_set(&this->d, d_);
+	x_check_stat_do(stat, { x_int_del(&r); x_int_del(&u_); x_int_del(&d_); });
+	x_int_del(&u_);
+	x_int_del(&d_);
+	x_int_del(&r);
 	return x_stat_ok;
 }
 static x_stat x_frac_set(x_frac** pthis, x_frac* that) {
@@ -1030,6 +1069,152 @@ static x_stat x_frac_calc_base_v(x_frac** pthis, x_frac_calc_func* func, x_sint 
 	x_frac_del(&a);
 	x_frac_del(&b);
 	return stat;
+}
+static x_stat x_frac_mul(x_frac** pthis, x_frac* a, x_frac* b) {
+	if (!pthis) return x_stat_error;
+	x_frac* this = *pthis;
+	if (!this) {
+		x_stat stat = x_frac_new(pthis);
+		x_check_stat(stat);
+	}
+	if (!a || !b) return x_stat_error;
+	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
+		if (b->spec == x_real_spec_inf) {
+			x_stat stat = x_frac_make_nan(pthis);
+			return stat;
+		}
+		x_stat stat = x_frac_set_v(pthis, 0, 1);
+		return stat;
+	}
+	if (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero) {
+		if (a->spec == x_real_spec_inf) {
+			x_stat stat = x_frac_make_nan(pthis);
+			return stat;
+		}
+		x_stat stat = x_frac_set_v(pthis, 0, 1);
+		return stat;
+	}
+	if (a->spec == x_real_spec_nan || b->spec == x_real_spec_nan) {
+		x_stat stat = x_frac_make_nan(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
+		x_stat stat = x_frac_make_any(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_inf && b->spec == x_real_spec_inf) {
+		x_stat stat = x_frac_make_inf(pthis, x_real_sym_pos);
+		this->symbol = a->symbol * b->symbol;
+		return stat;
+	}
+	if (a->spec == x_real_spec_inf || b->spec == x_real_spec_inf) {
+		x_stat stat = x_frac_make_inf(pthis, x_real_sym_pos);
+		this->symbol = a->symbol * b->symbol;
+		return stat;
+	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
+	x_stat stat;
+	stat = x_int_mul(&this->u, a->u, b->u);
+	x_check_stat(stat);
+	stat = x_int_mul(&this->d, a->d, b->d);
+	x_check_stat(stat);
+	stat = x_frac_optimize(pthis);
+	x_check_stat(stat);
+	return x_stat_ok;
+}
+static x_stat x_frac_div(x_frac** pthis, x_frac* a, x_frac* b) {
+	if (!pthis) return x_stat_error;
+	x_frac* this = *pthis;
+	if (!this) {
+		x_stat stat = x_frac_new(pthis);
+		x_check_stat(stat);
+	}
+	if (!a || !b) return x_stat_error;
+	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
+		x_stat stat = x_frac_make_any(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_nan || b->spec == x_real_spec_nan) {
+		x_stat stat = x_frac_make_nan(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_inf && b->spec == x_real_spec_inf) {
+		x_stat stat = x_frac_make_any(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_inf) {
+		x_stat stat = x_frac_make_inf(pthis, a->symbol * b->symbol);
+		return stat;
+	}
+	if (b->spec == x_real_spec_inf) {
+		x_stat stat = x_frac_set_v(pthis, 0, 1);
+		return stat;
+	}
+	if (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero) {
+		if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
+			x_stat stat = x_frac_make_any(pthis);
+			return stat;
+		}
+		else {
+			x_stat stat = x_frac_make_inf(pthis, a->symbol);
+			return stat;
+		}
+	}
+	// Both 'a' and 'b' aren't special. Do the calculation. 
+	x_stat stat;
+	stat = x_int_mul(&this->u, a->u, b->d);
+	x_check_stat(stat);
+	stat = x_int_mul(&this->d, a->d, b->u);
+	x_check_stat(stat);
+	stat = x_frac_optimize(pthis);
+	x_check_stat(stat);
+	return x_stat_ok;
+}
+static x_stat x_frac_add(x_frac** pthis, x_frac* a, x_frac* b) {
+	if (!pthis) return x_stat_error;
+	x_frac* this = *pthis;
+	if (!this) {
+		x_stat stat = x_frac_new(pthis);
+		x_check_stat(stat);
+	}
+	if (!a || !b) return x_stat_error;
+	if (!a || (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero)) {
+		x_stat stat = x_frac_set(pthis, b);
+		return stat;
+	}
+	if (!b || (b->spec == x_real_spec_def && b->symbol == x_real_sym_zero)) {
+		x_stat stat = x_frac_set(pthis, a);
+		return stat;
+	}
+	if (a->spec == x_real_spec_nan || b->spec == x_real_spec_nan) {
+		x_stat stat = x_frac_make_nan(pthis);
+		return stat;
+	}
+	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
+		x_stat stat = x_frac_make_any(pthis);
+		return stat;
+	}
+	x_stat stat;
+	// Both 'a' and 'b' aren't special. Do the calculation. 
+	x_int* a_;
+	x_int* b_;
+	stat = x_int_new(&a_);
+	x_check_stat(stat);
+	stat = x_int_new(&b_);
+	x_check_stat_do(stat, { x_int_del(&a_); });
+	stat = x_int_mul(&a_, a->u, b->d);
+	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
+	stat = x_int_mul(&b_, b->u, a->d);
+	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
+	stat = x_int_add(&this->u, a_, b_);
+	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
+	x_int_del(&a_);
+	x_int_del(&b_);
+	stat = x_int_mul(&this->d, a->d, b->d);
+	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
+	stat = x_frac_optimize(pthis);
+	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
+	return x_stat_ok;
 }
 
 #endif

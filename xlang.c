@@ -75,7 +75,7 @@ chi:
 	printf(" == ");
 	x_frac* test3;
 	x_frac_new(&test3);
-	//x_frac_div(&test3, test1, test2);
+	x_frac_add(&test3, test1, test2);
 	print_frac(test3);
 	x_frac_del(&test1);
 	x_frac_del(&test2);
