@@ -23,10 +23,22 @@
     <ClInclude Include="basic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="big_value.h">
+    <ClInclude Include="value.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xlang.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="setud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="compile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

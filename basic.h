@@ -3,48 +3,42 @@
 
 #include <malloc.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef long long x_sint;
 typedef unsigned long long x_uint;
 typedef char x_schr;
-typedef unsigned char x_uchr;
-typedef wchar_t x_char; // Do not confuse with x_schr and x_uchr. 
+typedef unsigned char x_byte;
+typedef wchar_t x_char; // Do not be confused with x_schr and x_byte. 
 typedef enum x_bool x_bool;
 enum x_bool {
-	either = 2,
 	false = 0,
 	true = 1
 };
 typedef enum x_stat x_stat;
 enum x_stat {
-	x_stat_ok = 0,
-	x_stat_error = 1,
-	x_stat_nomem = 2,
-	x_stat_already = 3
+	X_STAT_OK,
+	X_STAT_ALREADY,
+	X_STAT_ERROR,
+	X_STAT_NO_MEM,
+	X_STAT_OVERFLOW
 };
 x_bool x_stat_pass(x_stat stat) {
-	if (stat == x_stat_error) return false;
-	if (stat == x_stat_nomem) return false;
+	if (stat == X_STAT_ERROR) return false;
+	if (stat == X_STAT_NO_MEM) return false;
 	return true;
 }
 
-#ifdef X_MEM_DBG
-inline void* x_mem_new(x_uint size) {
-	printf("(");
-	return malloc(size);
+void* x_mem_new(x_uint size) {
+	void* block = malloc(size);
+	if (block) memset(block, 0, size);
+	return block;
 }
-inline void x_mem_del(void* ptr) {
-	printf("),");
-	free(ptr);
-}
+//inline void x_mem_del(void* ptr) { free(ptr); }
+
 #define new(TYPE) x_mem_new(sizeof(TYPE))
 #define newlist(TYPE,CNT) x_mem_new(sizeof(TYPE)*CNT)
-#define del(PTR) x_mem_del(PTR)
-#else
-#define new(TYPE) malloc(sizeof(TYPE))
-#define newlist(TYPE,CNT) malloc(sizeof(TYPE)*CNT)
 #define del(PTR) free(PTR)
-#endif
 
 #ifdef X_STAT_CHK_DBG
 #define x_check_stat_voidret(STAT,RET) if (!x_stat_pass(STAT)) {  __debugbreak(); return; }
@@ -52,7 +46,7 @@ inline void x_mem_del(void* ptr) {
 #define x_check_stat(STAT) if (!x_stat_pass(STAT)) { __debugbreak(); return STAT; }
 #else
 #define x_check_stat_voidret(STAT,RET) if (!x_stat_pass(STAT)) return;
-#define x_check_stat_do(STAT, DO) if (!x_stat_pass(STAT)) { DO __debugbreak(); return STAT; }
+#define x_check_stat_do(STAT, DO) if (!x_stat_pass(STAT)) { DO return STAT; }
 #define x_check_stat(STAT) if (!x_stat_pass(STAT)) return STAT;
 #endif
 
@@ -70,25 +64,26 @@ struct x_li {
 };
 typedef x_stat x_li_del_func(void*, void*);
 static x_stat x_li_new(x_li** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis; 
+	if (this) return X_STAT_ERROR;
 	this = new(x_li);
-	if (!this) return x_stat_nomem;
+	if (!this) return X_STAT_NO_MEM;
 	this->head = NULL;
 	this->tail = NULL;
 	this->size = 0;
 	*pthis = this;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_li_add_tail(x_li** pthis, void* value) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis;
 	if (!this) {
 		x_stat stat = x_li_new(pthis);
 		x_check_stat(stat);
 	}
 	x_node* node = new(x_node);
-	if (!node) return x_stat_nomem;
+	if (!node) return X_STAT_NO_MEM;
 	node->value = value;
 	node->next = NULL;
 	if (!this->tail) this->head = node;
@@ -96,17 +91,17 @@ static x_stat x_li_add_tail(x_li** pthis, void* value) {
 	node->prev = this->tail;
 	this->tail = node;
 	this->size++;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_li_add_head(x_li** pthis, void* value) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis;
 	if (!this) {
 		x_stat stat = x_li_new(pthis);
 		x_check_stat(stat);
 	}
 	x_node* node = new(x_node);
-	if (!node) return x_stat_nomem;
+	if (!node) return X_STAT_NO_MEM;
 	node->value = value;
 	node->prev = NULL;
 	if (!this->head) this->tail = node;
@@ -114,13 +109,13 @@ static x_stat x_li_add_head(x_li** pthis, void* value) {
 	node->next = this->head;
 	this->head = node;
 	this->size++;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_li_pop_tail(x_li** pthis, void** value_ptr) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis;
-	if (!this) return x_stat_already;
-	if (!this->tail) return x_stat_already;
+	if (!this) return X_STAT_ALREADY;
+	if (!this->tail) return X_STAT_ALREADY;
 	else {
 		if (value_ptr) *value_ptr = this->tail->value;
 		x_node* prev = this->tail->prev;
@@ -130,13 +125,13 @@ static x_stat x_li_pop_tail(x_li** pthis, void** value_ptr) {
 		if (this->tail) this->tail->next = NULL;
 	}
 	this->size--;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_li_pop_head(x_li** pthis, void** value_ptr) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis;
-	if (!this) return x_stat_already;
-	if (!this->head) return x_stat_already;
+	if (!this) return X_STAT_ALREADY;
+	if (!this->head) return X_STAT_ALREADY;
 	else {
 		if (value_ptr) *value_ptr = this->head->value;
 		x_node* next = this->head->next;
@@ -146,12 +141,12 @@ static x_stat x_li_pop_head(x_li** pthis, void** value_ptr) {
 		if (this->head) this->head->prev = NULL;
 	}
 	this->size--;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_li_del(x_li** pthis, x_li_del_func* del_func, void* client_data) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_li* this = *pthis;
-	if (!this) return x_stat_already;
+	if (!this) return X_STAT_ALREADY;
 	x_node* cur_next = NULL;
 	for (x_node* cur = this->head; cur != NULL; cur = cur_next) {
 		cur_next = cur->next;
@@ -160,7 +155,7 @@ static x_stat x_li_del(x_li** pthis, x_li_del_func* del_func, void* client_data)
 	}
 	del(this);
 	*pthis = NULL;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 
 #endif

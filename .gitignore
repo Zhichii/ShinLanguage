@@ -8,6 +8,7 @@ XLang/
 *.zip
 test_*
 desktop.ini
+*.exe
 
 # User-specific files
 *.rsuser

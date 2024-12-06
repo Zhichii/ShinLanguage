@@ -1,2 +1,6 @@
 #include "basic.h"
-#include "big_value.h"
+#include "value.h"
+#include "object.h"
+#include "compile.h"
+#include "global.h"
+#include "setud.h"

@@ -1,5 +1,5 @@
-#ifndef X_BIG_VALUE
-#define X_BIG_VALUE
+#ifndef X_VALUE
+#define X_VALUE
 
 #include "basic.h"
 typedef enum x_real_sym x_real_sym;
@@ -22,29 +22,31 @@ struct x_int {
 	x_real_sym symbol;
 };
 typedef x_stat x_int_calc_func(x_int**, x_int*, x_int*);
+static x_stat x_int_del(x_int** pthis);
 static x_stat x_int_new(x_int** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
+	if (this) x_int_del(pthis);
 	this = new(x_int);
-	if (!this) return x_stat_nomem;
+	if (!this) return X_STAT_NO_MEM;
 	x_stat stat = x_li_new(&this->value);
 	x_check_stat_do(stat, { del(this); });
 	this->spec = x_real_spec_def;
 	this->symbol = x_real_sym_zero;
 	*pthis = this;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_del(x_int** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
-	if (!this) return x_stat_already;
+	if (!this) return X_STAT_ALREADY;
 	x_li_del(&this->value, NULL, NULL);
 	del(this);
 	*pthis = NULL;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_set_v(x_int** pthis, x_sint val) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -65,30 +67,30 @@ static x_stat x_int_set_v(x_int** pthis, x_sint val) {
 			x_check_stat(stat);
 			stat = x_li_add_tail(&this->value, (void*)1);
 			x_check_stat(stat);
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		val = -val;
 	}
 	if (val == 0) {
 		this->symbol = x_real_sym_zero;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (0 < val && val < 4294967296) {
 		stat = x_li_add_tail(&this->value, (void*)val);
 		x_check_stat(stat);
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (4294967296 <= val) {
 		stat = x_li_add_tail(&this->value, (void*)(val % 4294967296));
 		x_check_stat(stat);
 		stat = x_li_add_tail(&this->value, (void*)((val >> 32) % 4294967296));
 		x_check_stat(stat);
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
-	return x_stat_error;
+	return X_STAT_ERROR;
 }
 static x_stat x_int_make_nan(x_int** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -97,10 +99,10 @@ static x_stat x_int_make_nan(x_int** pthis) {
 	x_stat stat = x_int_set_v(pthis, 0);
 	x_check_stat(stat);
 	this->spec = x_real_spec_nan;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_make_inf(x_int** pthis, x_real_sym symbol) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -111,10 +113,10 @@ static x_stat x_int_make_inf(x_int** pthis, x_real_sym symbol) {
 	this->spec = x_real_spec_inf;
 	if (symbol == x_real_sym_zero) symbol = x_real_sym_pos;
 	this->symbol = symbol;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_make_any(x_int** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -123,10 +125,10 @@ static x_stat x_int_make_any(x_int** pthis) {
 	x_stat stat = x_int_set_v(pthis, 0);
 	x_check_stat(stat);
 	this->spec = x_real_spec_any;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_del_lead_zero(x_int** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -142,10 +144,10 @@ static x_stat x_int_del_lead_zero(x_int** pthis) {
 		}
 	}
 	if (this->spec == x_real_spec_def && this->value->size == 0) this->symbol = x_real_sym_zero;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_set(x_int** pthis, x_int* that) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -166,132 +168,132 @@ static x_stat x_int_set(x_int** pthis, x_int* that) {
 			x_check_stat(stat);
 		}
 	}
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_less(x_bool* pthis, x_int* a, x_int* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	if (!a && !b) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (!a) {
 		*pthis = b->spec == x_real_spec_def && b->symbol == x_real_sym_neg;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (!b) {
 		*pthis = a->spec == x_real_spec_def && a->symbol == x_real_sym_pos;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
-		*pthis = either;
-		return x_stat_ok;
+		*pthis = true;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_nan || b->spec == x_real_spec_nan) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->symbol < b->symbol) { // They can compare size. See the definition of x_int_sym_xxx.
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->symbol > b->symbol) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	// The symbols are the same. 
 	if (a->spec == x_real_spec_inf && b->spec == x_real_spec_inf) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_inf || b->spec == x_real_spec_inf) {
 		if (a->symbol == x_real_sym_pos) *pthis = b->spec == x_real_spec_inf;
 		if (a->symbol == x_real_sym_zero) *pthis = b->spec == x_real_spec_inf; // Default to positive. 
 		if (a->symbol == x_real_sym_neg) *pthis = a->spec == x_real_spec_inf;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->value->size < b->value->size) {
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->value->size > b->value->size) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	x_node* cur_a = a->value->tail;
 	x_node* cur_b = b->value->tail;
 	for (; cur_a != NULL && cur_b != NULL; ) {
 		if (cur_a->value < cur_b->value) {
 			*pthis = true;
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		if (cur_a->value > cur_b->value) {
 			*pthis = false;
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		cur_a = cur_a->prev;
 		cur_b = cur_b->prev;
 	}
 	*pthis = false;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_same(x_bool* pthis, x_int* a, x_int* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	if (!a && !b) {
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (!a) {
 		*pthis = b->spec == x_real_spec_def && b->symbol == x_real_sym_zero;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (!b) {
 		*pthis = a->spec == x_real_spec_def && a->symbol == x_real_sym_zero;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_nan && b->spec == x_real_spec_nan) {
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_nan || b->spec == x_real_spec_nan) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->symbol != b->symbol) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	// The symbols are the same. 
 	if (a->spec == x_real_spec_inf && b->spec == x_real_spec_inf) {
 		*pthis = true;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->spec == x_real_spec_inf || b->spec == x_real_spec_inf) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (a->value->size != b->value->size) {
 		*pthis = false;
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	x_node* cur_a = a->value->tail;
 	x_node* cur_b = b->value->tail;
 	for (; cur_a != NULL && cur_b != NULL; ) {
 		if (cur_a->value != cur_b->value) {
 			*pthis = false;
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		cur_a = cur_a->prev;
 		cur_b = cur_b->prev;
 	}
 	*pthis = true;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_int_calc_base(x_int** pthis, x_int_calc_func* func, x_int* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -308,7 +310,7 @@ static x_stat x_int_calc_base(x_int** pthis, x_int_calc_func* func, x_int* b) {
 	return stat;
 }
 static x_stat x_int_calc_base_v(x_int** pthis, x_int_calc_func* func, x_sint val) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
@@ -331,13 +333,13 @@ static x_stat x_int_calc_base_v(x_int** pthis, x_int_calc_func* func, x_sint val
 	return stat;
 }
 static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || !b) return x_stat_error;
+	if (!a || !b) return X_STAT_ERROR;
 	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
 		x_stat stat = x_int_set(pthis, b);
 		return stat;
@@ -386,7 +388,7 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 			x_stat stat;
 			stat = x_int_make_inf(pthis, x_real_sym_pos);
 			x_check_stat(stat);
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		// Do addition. 
 		x_node* cur_t = this->value->head;
@@ -412,12 +414,12 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 		if (a->spec == x_real_spec_inf && b->spec == x_real_spec_inf) {
 			x_stat stat = x_int_make_nan(pthis);
 			x_check_stat(stat);
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		if (a->spec == x_real_spec_inf || b->spec == x_real_spec_inf) {
 			x_stat stat = x_int_make_inf(pthis, x_real_sym_neg);
 			x_check_stat(stat);
-			return x_stat_ok;
+			return X_STAT_OK;
 		}
 		// Do subtract. 
 		x_node* cur_t = this->value->head;
@@ -434,7 +436,7 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 			if (borrow != 0) {
 				if (cur_t == NULL) {
 					__debugbreak();
-					return x_stat_error; // I think it's impossible to get here. 
+					return X_STAT_ERROR; // I think it's impossible to get here. 
 				}
 				else {
 					cur_t->value = (void*)(((x_sint)cur_t->value) - borrow);
@@ -444,17 +446,17 @@ static x_stat x_int_add(x_int** pthis, x_int* a, x_int* b) {
 		}
 		x_int_del_lead_zero(pthis);
 	}
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 // If you are multiplying powers of 2, use left shift (<<) instead. 
 static x_stat x_int_mul(x_int** pthis, x_int* a, x_int* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || !b) return x_stat_error;
+	if (!a || !b) return X_STAT_ERROR;
 	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
 		if (b->spec == x_real_spec_inf) {
 			x_stat stat = x_int_make_nan(pthis);
@@ -531,17 +533,17 @@ static x_stat x_int_mul(x_int** pthis, x_int* a, x_int* b) {
 	}
 	this->symbol = a->symbol * b->symbol;
 	x_int_del(&m);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 // If you are dividing powers of 2, use right shift (>>) instead. 
 static x_stat x_int_div(x_int** pthis, x_int* u, x_int* d) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!u || !d) return x_stat_error;
+	if (!u || !d) return X_STAT_ERROR;
 	if (u->spec == x_real_spec_any || d->spec == x_real_spec_any) {
 		x_stat stat = x_int_make_any(pthis);
 		return stat;
@@ -685,17 +687,17 @@ static x_stat x_int_div(x_int** pthis, x_int* u, x_int* d) {
 	x_int_del(&d_shift);
 	x_int_del(&left);
 	x_int_del(&d_abs);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 // If you are dividing powers of 2, use minus (add negative +) instead. 
 static x_stat x_int_mod(x_int** pthis, x_int* u, x_int* d) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_int* this = *pthis;
 	if (!this) {
 		x_stat stat = x_int_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!u || !d) return x_stat_error;
+	if (!u || !d) return X_STAT_ERROR;
 	if (u->spec == x_real_spec_any || d->spec == x_real_spec_any) {
 		x_stat stat = x_int_make_any(pthis);
 		return stat;
@@ -833,7 +835,7 @@ static x_stat x_int_mod(x_int** pthis, x_int* u, x_int* d) {
 	x_int_del(&d_shift);
 	x_int_del(&left);
 	x_int_del(&d_abs);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 
 typedef struct x_frac x_frac;
@@ -844,11 +846,14 @@ struct x_frac {
 	x_real_sym symbol;
 };
 typedef x_stat x_frac_calc_func(x_frac**, x_frac*, x_frac*);
+static x_stat x_frac_del(x_frac** pthis);
+static x_stat x_frac_optimize(x_frac** pthis);
 static x_stat x_frac_new(x_frac** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
+	if (this) x_frac_del(pthis);
 	this = new(x_frac);
-	if (!this) return x_stat_nomem;
+	if (!this) return X_STAT_NO_MEM;
 	x_stat stat;
 	stat = x_int_new(&this->u);
 	x_check_stat_do(stat, { del(this); });
@@ -857,21 +862,20 @@ static x_stat x_frac_new(x_frac** pthis) {
 	this->spec = x_real_spec_def;
 	this->symbol = x_real_sym_zero;
 	*pthis = this;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_del(x_frac** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
-	if (!this) return x_stat_already;
+	if (!this) return X_STAT_ALREADY;
 	x_int_del(&this->u);
 	x_int_del(&this->d);
 	del(this);
 	*pthis = NULL;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
-static x_stat x_frac_optimize(x_frac** pthis);
 static x_stat x_frac_set_v(x_frac** pthis, x_sint u, x_sint d) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -884,10 +888,10 @@ static x_stat x_frac_set_v(x_frac** pthis, x_sint u, x_sint d) {
 	x_check_stat(stat);
 	this->symbol = x_real_sym_pos;
 	x_frac_optimize(pthis);
-	return x_stat_error;
+	return X_STAT_ERROR;
 }
 static x_stat x_frac_make_nan(x_frac** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -896,10 +900,10 @@ static x_stat x_frac_make_nan(x_frac** pthis) {
 	x_stat stat = x_frac_set_v(pthis, 0, 1);
 	x_check_stat(stat);
 	this->spec = x_real_spec_nan;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_make_inf(x_frac** pthis, x_real_sym symbol) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -910,10 +914,10 @@ static x_stat x_frac_make_inf(x_frac** pthis, x_real_sym symbol) {
 	this->spec = x_real_spec_inf;
 	if (symbol == x_real_sym_zero) symbol = x_real_sym_pos;
 	this->symbol = symbol;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_make_any(x_frac** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -922,10 +926,10 @@ static x_stat x_frac_make_any(x_frac** pthis) {
 	x_stat stat = x_frac_set_v(pthis, 0, 1);
 	x_check_stat(stat);
 	this->spec = x_real_spec_any;
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_optimize(x_frac** pthis) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -998,10 +1002,10 @@ static x_stat x_frac_optimize(x_frac** pthis) {
 	x_int_del(&u_);
 	x_int_del(&d_);
 	x_int_del(&r);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_set(x_frac** pthis, x_frac* that) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -1014,10 +1018,10 @@ static x_stat x_frac_set(x_frac** pthis, x_frac* that) {
 	x_check_stat(stat);
 	this->spec = that->spec;
 	this->symbol = that->symbol;
-	return x_stat_error;
+	return X_STAT_ERROR;
 }
 static x_stat x_frac_set_int(x_frac** pthis, x_int* that) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -1028,10 +1032,10 @@ static x_stat x_frac_set_int(x_frac** pthis, x_int* that) {
 	x_check_stat(stat);
 	stat = x_int_set_v(&this->d, 1);
 	x_check_stat(stat);
-	return x_stat_error;
+	return X_STAT_ERROR;
 }
 static x_stat x_frac_calc_base(x_frac** pthis, x_frac_calc_func* func, x_frac* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -1048,7 +1052,7 @@ static x_stat x_frac_calc_base(x_frac** pthis, x_frac_calc_func* func, x_frac* b
 	return stat;
 }
 static x_stat x_frac_calc_base_v(x_frac** pthis, x_frac_calc_func* func, x_sint val) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
@@ -1071,13 +1075,13 @@ static x_stat x_frac_calc_base_v(x_frac** pthis, x_frac_calc_func* func, x_sint 
 	return stat;
 }
 static x_stat x_frac_mul(x_frac** pthis, x_frac* a, x_frac* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || !b) return x_stat_error;
+	if (!a || !b) return X_STAT_ERROR;
 	if (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero) {
 		if (b->spec == x_real_spec_inf) {
 			x_stat stat = x_frac_make_nan(pthis);
@@ -1120,16 +1124,16 @@ static x_stat x_frac_mul(x_frac** pthis, x_frac* a, x_frac* b) {
 	x_check_stat(stat);
 	stat = x_frac_optimize(pthis);
 	x_check_stat(stat);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_div(x_frac** pthis, x_frac* a, x_frac* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || !b) return x_stat_error;
+	if (!a || !b) return X_STAT_ERROR;
 	if (a->spec == x_real_spec_any || b->spec == x_real_spec_any) {
 		x_stat stat = x_frac_make_any(pthis);
 		return stat;
@@ -1168,16 +1172,16 @@ static x_stat x_frac_div(x_frac** pthis, x_frac* a, x_frac* b) {
 	x_check_stat(stat);
 	stat = x_frac_optimize(pthis);
 	x_check_stat(stat);
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat x_frac_add(x_frac** pthis, x_frac* a, x_frac* b) {
-	if (!pthis) return x_stat_error;
+	if (!pthis) return X_STAT_ERROR;
 	x_frac* this = *pthis;
 	if (!this) {
 		x_stat stat = x_frac_new(pthis);
 		x_check_stat(stat);
 	}
-	if (!a || !b) return x_stat_error;
+	if (!a || !b) return X_STAT_ERROR;
 	if (!a || (a->spec == x_real_spec_def && a->symbol == x_real_sym_zero)) {
 		x_stat stat = x_frac_set(pthis, b);
 		return stat;
@@ -1214,7 +1218,7 @@ static x_stat x_frac_add(x_frac** pthis, x_frac* a, x_frac* b) {
 	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
 	stat = x_frac_optimize(pthis);
 	x_check_stat_do(stat, { x_int_del(&a_); x_int_del(&b_); });
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 
 #endif

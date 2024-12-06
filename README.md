@@ -4,7 +4,9 @@
 
 # Description
 
-This project is a simple programming language. Its grammar is similar to C/C++ and it's also similar to Python. 
+This project is a simple programming language. 
+Its grammar is totally different from any language. 
+See [here](demo.x) for an example programme. 
 
 # Notes
 

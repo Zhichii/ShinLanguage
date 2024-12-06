@@ -4,22 +4,22 @@
 static x_stat print(x_int* this) {
 	if (this->spec == x_real_spec_any) {
 		printf("any");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->spec == x_real_spec_nan) {
 		printf("nan");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->symbol == x_real_sym_neg) {
 		printf("-");
 	}
 	if (this->symbol == x_real_sym_zero) {
 		printf("0");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->spec == x_real_spec_inf) {
 		printf("inf");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	for (x_node* cur = this->value->tail; cur != NULL; cur = cur->prev) {
 		if (cur == this->value->tail) printf("(");
@@ -30,58 +30,41 @@ static x_stat print(x_int* this) {
 		if (cur == this->value->head) printf("%lld)", cur->value);
 		else printf("%lld)<<32)", cur->value);
 	}
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 static x_stat print_frac(x_frac* this) {
 	if (this->spec == x_real_spec_any) {
 		printf("any");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->spec == x_real_spec_nan) {
 		printf("nan");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->symbol == x_real_sym_neg) {
 		printf("-");
 	}
 	if (this->symbol == x_real_sym_zero) {
 		printf("0");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	if (this->spec == x_real_spec_inf) {
 		printf("inf");
-		return x_stat_ok;
+		return X_STAT_OK;
 	}
 	printf("fractions.Fraction(");
 	print(this->u);
 	printf(",");
 	print(this->d);
 	printf(")");
-	return x_stat_ok;
+	return X_STAT_OK;
 }
 
 int main() {
-	int cnt = 0;
-chi:
-	x_frac* test1;
-	x_frac_new(&test1);
-	x_frac_set_v(&test1, 33333333333333333, 33333);
-	print_frac(test1);
-	printf(" + ");
-	x_frac* test2;
-	x_frac_new(&test2);
-	x_frac_set_v(&test2, 1145, 1);
-	print_frac(test2);
-	printf(" == ");
-	x_frac* test3;
-	x_frac_new(&test3);
-	x_frac_add(&test3, test1, test2);
-	print_frac(test3);
-	x_frac_del(&test1);
-	x_frac_del(&test2);
-	x_frac_del(&test3);
-	cnt++;
-	if (cnt == 1);
-	else goto chi;
+	x_stat stat;
+	stat = xlang_setup();
+	if (!x_stat_pass(stat)) printf("Loading error: %d! ", stat);
+	stat = xlang_setdown();
+	if (!x_stat_pass(stat)) printf("Exiting error: %d!", stat);
 	return 0;
 }
