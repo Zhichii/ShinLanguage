@@ -15,7 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="xlang.c">
+    <ClCompile Include="hxlang.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="object.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="builtin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -23,22 +32,16 @@
     <ClInclude Include="basic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="value.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="xlang.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="setud.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="compile.h">
+    <ClInclude Include="hxlang.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="builtin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="env.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
