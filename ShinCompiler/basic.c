@@ -1,36 +1,36 @@
 #include "basic.h"
 
-#ifdef HX_MEM_DBG
-void* hx_mem_alloc(hx_uint size) {
+#ifdef SH_MEM_DBG
+void* sh_mem_alloc(sh_uint size) {
 	printf("[");
 	void* block = malloc(size);
 	if (block) memset(block, 0, size);
 	return block;
 }
-void hx_mem_free(void* block) {
+void sh_mem_free(void* block) {
 	printf("]");
 	free(block);
 }
 #else
-void* hx_mem_alloc(hx_uint size) {
+void* sh_mem_alloc(sh_uint size) {
 	void* block = malloc(size);
 	if (block) memset(block, 0, size);
 	return block;
 }
 #endif
 
-hx_list*hx_list_new() {
-	hx_list* this = ALLOC(hx_list);
+sh_list* sh_list_new() {
+	sh_list* this = ALLOC(sh_list);
 	if (!this) return NULL;
 	this->head = NULL;
 	this->tail = NULL;
 	this->size = 0;
 	return this;
 }
-hx_ptr*	hx_list_add_before(hx_list* this, hx_uint index) {
+sh_ptr* sh_list_add_before(sh_list* this, sh_uint index) {
 	if (!this) return NULL;
 	if (index > this->size) index = this->size;
-	hx_node* node = ALLOC(hx_node);
+	sh_node* node = ALLOC(sh_node);
 	if (!node) return NULL;
 	node->prev = NULL;
 	node->value = NULL;
@@ -48,8 +48,8 @@ hx_ptr*	hx_list_add_before(hx_list* this, hx_uint index) {
 		this->size++;
 		return &node->value;
 	}
-	hx_uint i = 0;
-	hx_node* cur;
+	sh_uint i = 0;
+	sh_node* cur;
 	for (cur = this->head; cur != NULL; cur = cur->next) {
 		if (i == index) break;
 		i++;
@@ -64,11 +64,11 @@ hx_ptr*	hx_list_add_before(hx_list* this, hx_uint index) {
 	this->size++;
 	return &node->value;
 }
-hx_ptr	hx_list_pop(hx_list* this, hx_uint index) {
+sh_ptr	sh_list_pop(sh_list* this, sh_uint index) {
 	if (!this) return NULL;
 	if (index > this->size) index = this->size;
 	if (this->head == NULL) return NULL;
-	hx_ptr res;
+	sh_ptr res;
 	if (this->head == this->tail) {
 		res = this->head->value;
 		FREE(this->head);
@@ -77,8 +77,8 @@ hx_ptr	hx_list_pop(hx_list* this, hx_uint index) {
 		this->size = 0;
 		return res;
 	}
-	hx_uint i = 0;
-	hx_node* cur;
+	sh_uint i = 0;
+	sh_node* cur;
 	for (cur = this->head; cur != NULL; cur = cur->next) {
 		if (i == index) break;
 		i++;
@@ -92,12 +92,12 @@ hx_ptr	hx_list_pop(hx_list* this, hx_uint index) {
 	this->size--;
 	return res;
 }
-void	hx_list_delete(hx_list* this, hx_custom_func* custom_func, hx_ptr client_data) {
+void	sh_list_delete(sh_list* this, sh_custom_func* custom_func, sh_ptr client_data) {
 	if (!this) return;
-	hx_node* cur;
+	sh_node* cur;
 	for (cur = this->head; cur != NULL; ) {
 		if (custom_func) custom_func(&cur->value, client_data);
-		hx_node* cur_next = cur->next;
+		sh_node* cur_next = cur->next;
 		FREE(cur);
 		cur = cur_next;
 	}
