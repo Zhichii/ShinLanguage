@@ -1,4 +1,4 @@
-#include "basic.h"
+#include "shinc.basic.h"
 
 #ifdef SH_MEM_DBG
 void* sh_mem_alloc(sh_uint size) {
@@ -19,7 +19,7 @@ void* sh_mem_alloc(sh_uint size) {
 }
 #endif
 
-sh_list* sh_list_new() {
+sh_list*sh_list_new() {
 	sh_list* this = ALLOC(sh_list);
 	if (!this) return NULL;
 	this->head = NULL;
@@ -102,4 +102,14 @@ void	sh_list_delete(sh_list* this, sh_custom_func* custom_func, sh_ptr client_da
 		cur = cur_next;
 	}
 	FREE(this);
+}
+
+sh_char* sh_str_convert(sh_schr* this) {
+	if (!this) return NULL;
+	setlocale(LC_ALL, "zh_CN.utf8");
+	sh_uint len = strlen(this);
+	sh_char* n = NEWSTR(len);
+	if (!n) return NULL;
+	mbstowcs(n, this, len);
+	return n;
 }

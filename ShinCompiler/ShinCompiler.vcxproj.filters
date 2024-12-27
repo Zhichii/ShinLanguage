@@ -18,16 +18,30 @@
     <ClCompile Include="shinc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="basic.c">
+    <ClCompile Include="shinc.basic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="shinc.system.win.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="shinc.parser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="parser.h">
+    <ClInclude Include="shinc.parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="basic.h">
+    <ClInclude Include="shinc.basic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shinc.system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shinc.system.linux.c">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

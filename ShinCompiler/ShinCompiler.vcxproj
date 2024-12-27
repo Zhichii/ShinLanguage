@@ -127,12 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="basic.c" />
+    <ClCompile Include="shinc.basic.c" />
     <ClCompile Include="shinc.c" />
+    <ClCompile Include="shinc.parser.c" />
+    <ClCompile Include="shinc.system.win.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="basic.h" />
-    <ClInclude Include="parser.h" />
+    <ClInclude Include="shinc.basic.h" />
+    <ClInclude Include="shinc.parser.h" />
+    <ClInclude Include="shinc.system.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shinc.system.linux.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

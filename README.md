@@ -11,7 +11,7 @@
 
 This project is a simple programming language. 
 Its grammar is totally different from any language. 
-See [here](demo.hx) for an example programme. 
+See [here](demo.shin) for an example programme. 
 
 # Notes
 
