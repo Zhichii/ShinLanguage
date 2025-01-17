@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ShinEnv.c">
+    <ClCompile Include="shine.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

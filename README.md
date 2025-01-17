@@ -17,4 +17,4 @@ See [here](demo.shin) for an example programme.
 
 It's written in C. 
 
-"Shin" (シン) is the Japanese sound that imitates ancient Chinese sound of "新" (new). 
+"Shin" (シン) is the Chinese sound of "新" (new), but Pinyin "Xin" looks strange. 

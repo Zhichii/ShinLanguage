@@ -8,6 +8,12 @@
 #include <errno.h>
 #include <locale.h>
 
+#define STRUCT(NAME) typedef struct NAME NAME; struct NAME
+#define ENUM(NAME) typedef enum NAME NAME; enum NAME
+#define UNION(NAME) typedef union NAME NAME; union NAME
+
+ENUM(bool) { false = 0, true = 1 };
+
 typedef long long sh_sint;
 typedef unsigned long long sh_uint;
 typedef char sh_schr;
@@ -15,24 +21,19 @@ typedef unsigned char sh_byte;
 typedef wchar_t sh_char; // Do not be confused with sh_schr and sh_byte. 
 typedef void* sh_ptr;
 typedef sh_uint sh_custom_func(sh_ptr*, sh_ptr);
-
-#define STRUCT(NAME) typedef struct NAME NAME; struct NAME
-#define ENUM(NAME) typedef enum NAME NAME; enum NAME
-#define UNION(NAME) typedef union NAME NAME; union NAME
+typedef bool sh_bool;
 
 #define MIN(A,B) ((A<B)?(A):(B))
 #define MAX(A,B) ((A>B)?(A):(B))
 
-ENUM(bool) { false_ = 0, true_ = 1 };
-
+void* sh_debug_mem_alloc(sh_uint size);
+void sh_debug_mem_free(void* block);
+void* sh_mem_alloc(sh_uint size);
 #ifdef SH_MEM_DBG
-void* sh_mem_alloc(sh_uint size);
-void sh_mem_free(void* block);
-#define ALLOC(TYPE) sh_mem_alloc(sizeof(TYPE))
-#define NEWLIST(TYPE, CNT) sh_mem_alloc(sizeof(TYPE)*CNT)
-#define FREE(PTR) sh_mem_free(PTR)
+#define ALLOC(TYPE) sh_debug_mem_alloc(sizeof(TYPE))
+#define NEWLIST(TYPE, CNT) sh_debug_mem_alloc(sizeof(TYPE)*CNT)
+#define FREE(PTR) sh_debug_mem_free(PTR)
 #else
-void* sh_mem_alloc(sh_uint size);
 #define ALLOC(TYPE) sh_mem_alloc(sizeof(TYPE))
 #define NEWLIST(TYPE, CNT) sh_mem_alloc(sizeof(TYPE)*CNT)
 #define FREE(PTR) free(PTR)

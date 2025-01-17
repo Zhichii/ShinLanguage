@@ -1,23 +1,20 @@
 #include "shinc.basic.h"
 
-#ifdef SH_MEM_DBG
-void* sh_mem_alloc(sh_uint size) {
-	printf("[");
+void* sh_debug_mem_alloc(sh_uint size) {
+	printf("<");
 	void* block = malloc(size);
 	if (block) memset(block, 0, size);
 	return block;
 }
-void sh_mem_free(void* block) {
-	printf("]");
+void sh_debug_mem_free(void* block) {
+	printf(">");
 	free(block);
 }
-#else
 void* sh_mem_alloc(sh_uint size) {
 	void* block = malloc(size);
 	if (block) memset(block, 0, size);
 	return block;
 }
-#endif
 
 sh_list*sh_list_new() {
 	sh_list* this = ALLOC(sh_list);

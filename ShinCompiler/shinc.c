@@ -2,6 +2,7 @@
 #else
 #error Unsupported platform. 
 #endif
+
 #include "shinc.system.h"
 #include "shinc.basic.h"
 #include "shinc.parser.h"
@@ -61,7 +62,7 @@ int wmain(int argc, sh_char* argv[]) {
 		printf("Failed to allocate a new memory space. ");
 		goto FREE_READ_FILE;
 	}
-	printf("%S", file_content);
+	//printf("%S", file_content);
 	sh_uint byte_len;
 	sh_byte* byte_content = sh_code_compile(file_content, &byte_len);
 	if (!file_content) {
